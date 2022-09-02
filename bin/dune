@@ -11,4 +11,4 @@
 (executable
  (public_name GraphqlAPI)
  (name main)
- (libraries GraphqlAPI dream))
+ (libraries dream))

@@ -41,4 +41,9 @@ let () =
   let result = Parser.schema Lexer.tokens l in
   let open Ast in
   let expt = TypeDecl ("Todo", [Method ("id", [], Typ ("ID", true))] ) :: [] in
+  let gen = open_out "schema.ml" in
+
+  Gen.PrettyPrint.pp gen |>
+  Gen.PrettyPrint.generate_code expt;
+  close_out gen;
   assert (expt = result)|> ignore

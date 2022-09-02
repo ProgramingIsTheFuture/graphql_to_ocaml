@@ -16,7 +16,7 @@ type methods =
 
 type expr =
   (* Declare a new type schema *)
-  | TypeDecl of name * (methods) list
+  | TypeDecl of name * (methods list)
   (* Declare a new input schema *)
   | InpDecl of name * (name * typ)
   (* Declare a new Enum schema *)
