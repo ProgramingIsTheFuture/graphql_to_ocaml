@@ -1,0 +1,14 @@
+(ocamllex
+ (modules lexer))
+
+(menhir
+ (modules parser))
+
+(env
+  (dev
+    (flags (:standard -w -66))))
+
+(executable
+ (public_name GraphqlAPI)
+ (name main)
+ (libraries GraphqlAPI dream))
