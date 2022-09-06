@@ -20,30 +20,20 @@
 (*     Dream.get "/graphiql" (Dream.graphiql "/") *)
 (*   ];; *)
 
+let test = ref true ;;
+let speclist =
+  Arg.[("--no-tests", Set test, "Disable the test execution");];;
+
 let () =
-  let l = Lexing.from_string
-      "type Todo {
-  id: ID!
-}" in
+  Arg.parse speclist ignore "Usage message";
 
-  (* assert (Parser.TYPEKW = (Lexer.tokens l)); *)
-  (* assert (Parser.NAME "Todo" = (Lexer.tokens l)); *)
-  (* assert (Parser.LBRACK = (Lexer.tokens l)); *)
+  if !test then Tests.run_tests ()
+  else
 
-  (* assert (Parser.NAME "id" = (Lexer.tokens l)); *)
-  (* assert (Parser.DOUBLEDOT = (Lexer.tokens l)); *)
-  (* assert (Parser.NAME "ID" = (Lexer.tokens l)); *)
-  (* assert (Parser.EXCLAMATION "!" = (Lexer.tokens l)); *)
+    let gen = open_out "schema.ml" in
 
-  (* assert (Parser.RBRACK = (Lexer.tokens l)); *)
-  (* assert (Parser.EOF = (Lexer.tokens l)); *)
+    let s = Tokenizer.read_file "schema.graphql" in
 
-  let result = Parser.schema Lexer.tokens l in
-  let open Ast in
-  let expt = TypeDecl ("Todo", [Method ("id", [], Typ ("ID", true))] ) :: [] in
-  let gen = open_out "schema.ml" in
-
-  Gen.PrettyPrint.pp gen |>
-  Gen.PrettyPrint.generate_code expt;
-  close_out gen;
-  assert (expt = result)|> ignore
+    Gen.PrettyPrint.pp gen |>
+    Gen.PrettyPrint.generate_code (Tokenizer.get_tokens s);
+    close_out gen;

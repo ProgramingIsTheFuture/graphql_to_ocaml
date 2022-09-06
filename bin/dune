@@ -4,11 +4,11 @@
 (menhir
  (modules parser))
 
-(env
-  (dev
-    (flags (:standard -w -66))))
-
 (executable
- (public_name GraphqlAPI)
+ (public_name main)
  (name main)
  (libraries dream))
+
+(rule
+ (alias runtest)
+ (action (run ./main.exe --tt)))

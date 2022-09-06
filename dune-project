@@ -9,9 +9,7 @@
 (source
  (github username/reponame))
 
-(authors "Author Name")
-
-(maintainers "Maintainer Name")
+(authors "ProgramingIsTheFuture")
 
 (license LICENSE)
 
@@ -19,10 +17,8 @@
 
 (package
  (name GraphqlAPI)
- (synopsis "A short synopsis")
+ (synopsis "Compiler from graphql to ocaml")
  (description "A longer description")
- (depends ocaml dune dream)
- (tags
-  (topics "to describe" your project)))
+ (depends ocaml dune dream))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
