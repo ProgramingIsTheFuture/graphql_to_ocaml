@@ -2,7 +2,7 @@
 
 (using menhir 2.1)
 
-(name GraphqlAPI)
+(name graphql_to_ocaml)
 
 (generate_opam_files true)
 
