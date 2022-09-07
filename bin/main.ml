@@ -25,14 +25,14 @@ let speclist =
   Arg.[("--no-tests", Set test, "Disable the test execution");];;
 
 let () =
-  Arg.parse speclist ignore "Usage message";
+  Arg.parse speclist (fun n -> if n = "no-tests" then test := false) "Usage message";
 
   if !test then Tests.run_tests ()
   else
 
     let gen = open_out "schema.ml" in
 
-    let s = Tokenizer.read_file "schema.graphql" in
+    let s =  "type Todo { id: ID!\n Username: String\n Password: String!\n Age: Int\n Job: String }" in(*Tokenizer.read_file "schema.graphql" in*)
 
     Gen.PrettyPrint.pp gen |>
     Gen.PrettyPrint.generate_code (Tokenizer.get_tokens s);
