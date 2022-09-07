@@ -4,7 +4,7 @@ type typ =
   (* ID or String or Int... *)
   (* ! -> means it can be null or not  *)
   (* This bools means nullable or not *)
-  | Typ of name * bool
+  | Typ of name
 
 type params =
   (* Params to methods *)

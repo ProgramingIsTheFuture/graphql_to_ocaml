@@ -1,7 +1,7 @@
 %token <Ast.name> NAME
 %token EOF DOUBLEDOT TYPEKW COMMA
-%token <string> EXCLAMATION // INPUT
-%token RBRACK LBRACK RPARENT LPARENT
+%token EXCLAMATION // INPUT
+%token RBRACK LBRACK RPARENT LPARENT RRETPARENT LRETPARENT
 
 %start schema
 
@@ -10,13 +10,20 @@
 %%
 
 typ:
-| DOUBLEDOT n = NAME e2 = EXCLAMATION?
+// : ID!
+| DOUBLEDOT lrp = LRETPARENT? n = NAME e2 = EXCLAMATION? rrp = RRETPARENT? e3 = EXCLAMATION?
  {
-   match e2 with
-   | Some _ -> Ast.Typ (n, true)
-   | None -> Ast.Typ (n, false)
- }
+   let n = if n = "ID" then "int" else String.lowercase_ascii n in
+   let e3 = if rrp = None then Some () else e3 in
+   let lis = if lrp <> None && rrp <> None then " list" else "" in
 
+   let opt s e =
+     match e with
+     | None -> s ^ " option"
+     | Some _ -> s in
+
+   Ast.Typ ( opt ((opt n e2) ^ lis) e3 )
+ }
 
 params:
 | n = NAME t = typ COMMA?

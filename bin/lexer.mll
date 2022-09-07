@@ -20,12 +20,16 @@ rule tokens = parse
   { LPARENT }
 | ')'
   { RPARENT }
+| '['
+  { LRETPARENT }
+| ']'
+  { RRETPARENT }
 | ':'
   { DOUBLEDOT }
 | ','
   { COMMA }
 | '!'
-  { EXCLAMATION "!" }
+  { EXCLAMATION }
 | eof
   { EOF }
 | _
