@@ -16,7 +16,7 @@
 (documentation https://url/to/documentation)
 
 (package
- (name GraphqlAPI)
+ (name graphql_to_ocaml)
  (synopsis "Compiler from graphql to ocaml")
  (description "A longer description")
  (depends ocaml dune dream))
