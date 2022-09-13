@@ -1,10 +1,10 @@
 ## TODO
 
-1. Create a basic CLI
-   - Run tests
-   - Compile graphql code
-2. Upgrade the identation with Format module
-3. Add support to types with methods
-4. Add support to the schema initialization
-5. Add support for mutation schema
-6. Add graph dependency
+- [x] Create a basic CLI
+  - Run tests
+  - Compile graphql code
+- [x] Upgrade the identation with Format module
+- [x] Add support to types with methods
+- [ ] Add support to the schema initialization - Reorganize the project
+- [ ] Add support for mutation schema
+- [ ] Add graph dependency
