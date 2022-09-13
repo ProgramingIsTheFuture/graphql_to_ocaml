@@ -1,38 +1,8 @@
-module type Organizer = sig
-  val find_schema_decl: Ast.schema -> Ast.schemas option
-
-  val find_typ_by_name: Ast.name -> Ast.schema -> Ast.expr option
-end
-
-module Organizer: Organizer  = struct
-  open Ast
-
-  type t
-
-  (*  Encontra o entry point  *)
-  let rec find_schema_decl = function
-    | Schema s :: _ -> Some s
-    | _ :: l ->
-      find_schema_decl l
-    | [] -> None
-
-  (*  Encontra um typo com o nome n  *)
-  let rec find_typ_by_name (n: string) = function
-    | TypeDecl (name, _) as t :: l ->
-      if n = name then Some t else find_typ_by_name n l
-    | _ :: l -> find_typ_by_name n l
-    | [] -> None
-
-end
-
-
 
 module Interp: sig
   type t
 
   val types_names: string list ref
-
-  val declare_expr: Ast.expr -> t -> unit
 
   val find_expr_opt: t -> string -> Ast.expr option
 
@@ -44,10 +14,36 @@ end = struct
 
   let types_names = ref [];;
 
+  let check_primitive_typ s =
+    match s with
+    | "list" -> ""
+    | "option" -> ""
+    | "int" -> ""
+    | "string" -> ""
+    | "bool" -> ""
+    | _ -> s
+  let typ_to_str = function
+    | Ast.Typ str_typ -> String.split_on_char ' ' str_typ |> List.map check_primitive_typ |> String.concat "";;
+
+  (*  Encontra o entry point  *)
+  let rec find_schema_decl = function
+    | Ast.Schema s :: _ -> Some s
+    | _ :: l ->
+      find_schema_decl l
+    | [] -> None
+
+  (*  Encontra um typo com o nome n  *)
+  let rec find_typ_by_name (n: string) = function
+    | Ast.TypeDecl (name, _) as t :: l ->
+      if n = name || n = String.lowercase_ascii name then Some t else find_typ_by_name n l
+    | _ :: l -> find_typ_by_name n l
+    | [] -> None
+
   let declare_expr exp ctx =
     match exp with
     | Ast.TypeDecl (n, _) ->
       Hashtbl.add ctx n exp;
+      Format.printf "Name: %s" n;
       types_names := n :: !types_names;
     | _ -> ()
 
@@ -60,16 +56,16 @@ end = struct
       declare_expr fst ctx;
       let rec handle_meths = function
         | Ast.Method (_, params, typ) :: mets ->
-          let typ_to_str = function
-            | Ast.Typ str_typ -> str_typ in
-          let () = match Organizer.find_typ_by_name (typ_to_str typ) l with
+
+          Format.printf "\nTyp: %s" (typ_to_str typ);
+          let () = match find_typ_by_name (typ_to_str typ) l with
             | Some decl -> declare_expr decl ctx
             | None -> () in
 
           List.map (fun i ->
               match i with
               | Ast.Param (_, typ) ->
-                match Organizer.find_typ_by_name (typ_to_str typ) l with
+                match find_typ_by_name (typ_to_str typ) l with
                 | Some decl -> declare_expr decl ctx
                 | None -> ()
             ) params |> ignore;
@@ -82,11 +78,11 @@ end = struct
 
 
   let declare (l: Ast.schema) (ctx: t)=
-    let schema = Organizer.find_schema_decl l in
+    let schema = find_schema_decl l in
     match schema with
     | Some s ->
       let query = match s.query with | Some n -> n | None -> "" in
-      let typ = Organizer.find_typ_by_name query l in
+      let typ = find_typ_by_name query l in
       declare_all_typs (Option.get typ) l ctx
     | None -> ();;
 
@@ -116,14 +112,6 @@ end = struct
       Format.fprintf f "%s ->@ " (type_from_typ tt);
       pp_params f ll
     | [] -> ()
-
-  let pp_methods_to_types f = function
-    | Ast.Method (n, p, typ) ->
-      Format.fprintf f "%s: " (name_to_lower n);
-
-      pp_params f p;
-      Format.fprintf f "%s;" (type_from_typ typ);
-  ;;
 
   let ocamltyp_to_graphtyp s =
     let l = String.split_on_char ' ' s |> List.map
@@ -155,13 +143,15 @@ end = struct
     let h () =
       let rec get_fields llm=
         match llm with
-        | Method (nn, [] ,typ) :: lllm ->
+        | Method (nn, params,typ) :: lllm ->
           Format.pp_print_tab f ();
           let typp = begin match typ with Typ (nnn) -> (if nnn = "ID" then "int" else String.lowercase_ascii nnn) end in
           Format.fprintf
             f
-            "@[%s: %s;@]@ "
-            (name_to_lower nn)
+            "@[%s: "
+            (name_to_lower nn);
+          pp_params f params;
+          Format.fprintf f "%s;@]@ "
             typp;
           get_fields lllm
         | _ -> () in
@@ -229,14 +219,27 @@ end = struct
       pp_expr tl f
     | _ -> ();;
 
+  let rec pp_expr_ (l: string list) (ctx: Interp.t) (f: t) =
+    match l with
+    | typ :: ll ->
+      begin match Interp.find_expr_opt ctx typ with
+        | Some (Ast.TypeDecl (name, meths)) ->
+          pp_types f name meths;
+          pp_expr_ ll ctx f;
+        | _ -> pp_expr_ ll ctx f;
+      end
+    | [] -> f
+
+  ;;
 
   let pp (file: out_channel): t =
     (Format.formatter_of_out_channel file);;
 
   let generate_code (e: Ast.schema) (pp: t) =
     let interp = Interp.interp () in
-    Interp.declare e  interp;
+    Interp.declare e interp;
     pp_imports pp |>
+    pp_expr_ !Interp.types_names interp |>
     pp_expr e;
     Format.pp_print_newline pp ();;
 

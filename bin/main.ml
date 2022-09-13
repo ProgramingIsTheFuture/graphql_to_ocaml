@@ -32,7 +32,22 @@ let () =
 
     let gen = open_out "schema.ml" in
 
-    let s =  "type Todo { id: ID!\n Username: String\n Password(username: String): String!\n Age: Int\n Job: [String] }" in(*Tokenizer.read_file "schema.graphql" in*)
+    let s =  "
+schema {
+      query: MyQuery
+}
+
+type MyQuery {
+      Todos(id: ID): [Todo!]!
+}
+
+type Todo {
+  id: ID!
+  Username: String
+  Password(username: String): String!
+  Age: Int
+  Job: [String]
+}" in(*Tokenizer.read_file "schema.graphql" in*)
 
     Gen.generate s gen;
     close_out gen;;
