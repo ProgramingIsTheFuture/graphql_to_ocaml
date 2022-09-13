@@ -32,8 +32,7 @@ let () =
 
     let gen = open_out "schema.ml" in
 
-    let s =  "type Todo { id: ID!\n Username: String\n Password: String!\n Age: Int\n Job: [String] }" in(*Tokenizer.read_file "schema.graphql" in*)
+    let s =  "type Todo { id: ID!\n Username: String\n Password(username: String): String!\n Age: Int\n Job: [String] }" in(*Tokenizer.read_file "schema.graphql" in*)
 
-    Gen.PrettyPrint.pp gen |>
-    Gen.PrettyPrint.generate_code (Tokenizer.get_tokens s);
-    close_out gen;
+    Gen.generate s gen;
+    close_out gen;;
