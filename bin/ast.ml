@@ -14,6 +14,11 @@ type methods =
   (* methods accept methos and fields *)
   | Method of name * (params list) * typ
 
+type schemas = {
+  query: name option;
+  mutation: name option
+};;
+
 type expr =
   (* Declare a new type schema *)
   | TypeDecl of name * (methods list)
@@ -21,6 +26,11 @@ type expr =
   | InpDecl of name * (name * typ)
   (* Declare a new Enum schema *)
   | EnumDecl of name * name list
+  (* { *)
+  (*   query: --- *)
+  (*   mutation: ---- *)
+  (* } *)
+  | Schema of schemas
 
 type schema =
   expr list

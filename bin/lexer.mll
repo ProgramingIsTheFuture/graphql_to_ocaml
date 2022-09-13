@@ -10,6 +10,12 @@ rule tokens = parse
   {tokens lexbuf}
 | "type"
   { TYPEKW }
+| "schema"
+  { SCHEMA }
+| "query"
+  { QUERY }
+| "mutation"
+  { MUTATION }
 | ['a'-'z' 'A'-'Z']+ as name
   { NAME name }
 | '{'

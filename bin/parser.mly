@@ -1,7 +1,9 @@
 %token <Ast.name> NAME
-%token EOF DOUBLEDOT TYPEKW COMMA
+%token EOF DOUBLEDOT COMMA
 %token EXCLAMATION // INPUT
 %token RBRACK LBRACK RPARENT LPARENT RRETPARENT LRETPARENT
+// Keywords
+%token SCHEMA TYPEKW QUERY MUTATION
 
 %start schema
 
@@ -35,7 +37,16 @@ methods:
 | n = NAME LPARENT p = list(params) RPARENT t = typ
  { Ast.Method (n, p, t) }
 
+query:
+| QUERY DOUBLEDOT n = NAME
+ { n }
+mutation:
+| MUTATION DOUBLEDOT n = NAME
+ { n }
+
 expr:
+| SCHEMA LBRACK q = query? m = mutation? RBRACK
+ { Ast.Schema ({ query = q; mutation = m }) }
 | TYPEKW n = NAME LBRACK m = list(methods) RBRACK
  { TypeDecl (n, m) }
 
