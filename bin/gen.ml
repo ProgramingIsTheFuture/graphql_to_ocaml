@@ -43,8 +43,8 @@ end = struct
     match exp with
     | Ast.TypeDecl (n, _) ->
       Hashtbl.add ctx n exp;
-      Format.printf "Name: %s" n;
-      types_names := n :: !types_names;
+      if n <> "schema" then
+        types_names := n :: !types_names;
     | _ -> ()
 
   let find_expr_opt ctx n =
@@ -53,7 +53,7 @@ end = struct
   let declare_all_typs (fst: Ast.expr) (l: Ast.schema) (ctx: t) =
     match fst with
     | Ast.TypeDecl (_, meths) ->
-      declare_expr fst ctx;
+      declare_expr (Ast.TypeDecl ("schema", meths)) ctx;
       let rec handle_meths = function
         | Ast.Method (_, params, typ) :: mets ->
 
@@ -177,7 +177,7 @@ end = struct
     h args;
     Format.fprintf f "]@]@ @,";;
 
-  let pp_schema_typ (n: string) meths (f: t)=
+  let pp_schemas_typ (n: string) meths (f: t)=
     Format.fprintf f "@[<2>let %s_schema =@ @," (name_to_lower n);
     Format.fprintf f "let open Schema in@,";
     Format.fprintf f "@[<2>obj \"%s\"@," (name_to_lower n);
@@ -189,7 +189,6 @@ end = struct
         let tp =
           match typ with
           | Typ (nnn) ->
-            (* Convert the ocamltypes to graphqltypes TODO *)
             (ocamltyp_to_graphtyp nnn) in
 
         let namel = name_to_lower nn in
@@ -202,9 +201,40 @@ end = struct
       | _ -> () in
 
     h meths;
-    Format.fprintf f "@]])@];;@]@.";;
+    Format.fprintf f "@]])@];;@]@,@.";;
 
+  let pp_schema (ctx: Interp.t) (f: t) =
+    let schema_opt = Interp.find_expr_opt ctx "schema" in
+    match schema_opt with
+    | Some (Ast.TypeDecl (n, meths)) ->
+      pp_types n meths f;
+      Format.fprintf f "@[<2>let schema schema_from_typ =@ @,";
+      Format.fprintf f "let open Schema in@,";
+      Format.fprintf f "@[<2>Schema.schema [@,";
 
+      let rec h llm =
+        match llm with
+        | Ast.Method (nn, args ,typ) :: lllm ->
+          let tp =
+            match typ with
+            | Typ (nnn) ->
+              (ocamltyp_to_graphtyp nnn) in
+
+          let namel = name_to_lower nn in
+          Format.fprintf f "@[<2>field \"%s\"@ @," namel;
+          Format.fprintf f "~typ:(%s)@ @," tp;
+          pp_args args f;
+          Format.fprintf f "~resolve:schema_from_typ.%s;@ @,@]@;<0 0>" namel;
+
+          h lllm
+        | _ -> () in
+
+      h meths;
+
+      Format.fprintf f "]@]@]@.";
+      f
+    | _ -> f
+  ;;
 
   let rec _pp_expr e (f: t) =
     let open Ast in
@@ -255,7 +285,7 @@ end = struct
         | Some (Ast.TypeDecl (name, meths)) ->
           pp_types name meths f;
 
-          pp_schema_typ name meths f;
+          pp_schemas_typ name meths f;
 
           pp_expr_ ll ctx f;
         | _ -> pp_expr_ ll ctx f;
@@ -271,7 +301,7 @@ end = struct
     let interp = Interp.interp () in
     Interp.declare e interp;
     pp_imports pp |>
-    pp_expr_ !Interp.types_names interp |> ignore;
+    pp_expr_ !Interp.types_names interp |> pp_schema interp |> ignore;
     Format.pp_print_newline pp ();;
 
 end

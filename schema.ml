@@ -18,13 +18,11 @@ let todo_schema = let open Schema in
       field "job" ~typ:(non_null (list (non_null string))) ~args:Arg.[] 
         ~resolve:(fun _ v -> v.job); 
       ]);;
-type myquery = { todos: int option -> todo list; };;
+type schema = { todos: int option -> todo list; };;
 
-let myquery_schema = let open Schema in
-  obj "myquery"
-    ~fields:(fun _info -> [
-      field "todos" ~typ:(list todo) 
-        ~args:Arg.[arg "id" ~typ:(non_null int);] 
-        ~resolve:(fun _ v -> v.todos); 
-      ]);;
+let schema schema_from_typ = let open Schema in
+  Schema.schema [
+    field "todos" ~typ:(list todo) ~args:Arg.[arg "id" ~typ:(non_null int);] 
+      ~resolve:schema_from_typ.todos; 
+    ]
 
