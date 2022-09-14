@@ -44,7 +44,7 @@ type MyQuery {
 type Todo {
   Id: ID!
   Username: String
-  Password(username: String): String!
+  Password: String!
   Age: Int
   Job: [String]
 }" in(*Tokenizer.read_file "schema.graphql" in*)

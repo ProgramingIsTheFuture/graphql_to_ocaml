@@ -1,4 +1,3 @@
-
 module Interp: sig
   type t
 
@@ -56,8 +55,6 @@ end = struct
       declare_expr (Ast.TypeDecl ("schema", meths)) ctx;
       let rec handle_meths = function
         | Ast.Method (_, params, typ) :: mets ->
-
-          Format.printf "\nTyp: %s" (typ_to_str typ);
           let () = match find_typ_by_name (typ_to_str typ) l with
             | Some decl -> declare_expr decl ctx
             | None -> () in
@@ -107,18 +104,7 @@ end = struct
   let type_from_typ = function
     | Ast.Typ n -> n
 
-  let rec pp_params f = function
-    | Ast.Param (_, tt) :: ll ->
-      Format.fprintf f "%s ->@ " (type_from_typ tt);
-      pp_params f ll
-    | [] -> ()
-
-  let ocamltyp_to_graphtyp s =
-    let l = String.split_on_char ' ' s |> List.map
-              (fun ss ->
-                 if ss = "option" then "non_null" else ss
-              )  |> (*|> List.rev*)
-            List.rev in
+  let parents_transform l =
     List.fold_left (fun (ss, parent, first, len) el ->
         if first then (ss ^ el, parent, false, len-1)
         (* Closing all the parents *)
@@ -127,11 +113,52 @@ end = struct
         else (ss ^ " (" ^ el, ")"::parent, false, len-1)
       ) ("", [], true, List.length l) l |> function (r, _, _, _) -> r;;
 
+  let nullable_types l =
+    List.rev l |>
+    List.fold_left (fun (prev, res, len) el ->
+        if el = "option" then (true, res, len-1)
+        else if prev then (false, el :: res, len-1)
+        else
+          (false, el :: "non_null" :: res, len-1)
+      ) (false, [], List.length l) |> function (_, r, _) -> r |> List.rev;;
+
+  let ocamltyp_to_graphtyp s =
+    (* let rec h index s = function *)
+    (*   | [] -> *)
+    (*     s *)
+    (*   | ss :: [] -> *)
+    (*     if ss <> "option" then *)
+    (*       ss ^ " " ^ "non_null" ^ " " ^ s *)
+    (*     else ss *)
+    (*   | ss :: ll -> *)
+    (*     let sss = *)
+    (*       if index mod 2 = 1 && ss <> "option" then *)
+    (*         ss ^ " " ^ "non_null" ^ " " ^ s *)
+    (*       else ss ^ " " ^ s *)
+    (*     in *)
+    (*     h (index + 1) (sss) ll *)
+    (* in *)
+    let l = String.split_on_char ' ' s |> nullable_types in
+    (* h 0 "" |> *)
+    (*         String.split_on_char ' ' |> List.map *)
+    (*           (fun ss -> *)
+    (*              if ss = "option" then "" else ss *)
+    (*           )  |> (\*|> List.rev*\) *)
+    (*         List.filter (fun i -> i <> "") in *)
+
+    parents_transform l;;
+
+  let rec pp_params f = function
+    | Ast.Param (_, tt) :: ll ->
+      Format.fprintf f "%s ->@ " (type_from_typ tt);
+      pp_params f ll
+    | [] -> ()
+
   let pp_imports (f: t) =
     Format.fprintf f "open Graphql_lwt;;@,@."; f;;
 
   let type_decl (f: t) (name: string) (pp_rest: unit -> unit)=
-    Format.fprintf f "type %s = {@[<1>" (name_to_lower name);
+    Format.fprintf f "type %s = {@[<1>" (if (name_to_lower name) = "schema" then "'ctx schema" else name_to_lower name);
     Format.pp_print_space f ();
 
     pp_rest ();
@@ -150,6 +177,8 @@ end = struct
             f
             "@[%s: "
             (name_to_lower nn);
+          if (name_to_lower n) = "schema" then
+            Format.fprintf f "'ctx Schema.resolve_info ->@ unit ->@ ";
           pp_params f params;
           Format.fprintf f "%s;@]@ "
             typp;
@@ -178,7 +207,7 @@ end = struct
     Format.fprintf f "]@]@ @,";;
 
   let pp_schemas_typ (n: string) meths (f: t)=
-    Format.fprintf f "@[<2>let %s_schema =@ @," (name_to_lower n);
+    Format.fprintf f "@[<2>let %s:@ (Dream.request, todo option) Schema.typ =@ @," (name_to_lower n);
     Format.fprintf f "let open Schema in@,";
     Format.fprintf f "@[<2>obj \"%s\"@," n;
     Format.fprintf f "@[<2>~fields:(fun _info -> [@,";
@@ -218,6 +247,7 @@ end = struct
           let tp =
             match typ with
             | Typ (nnn) ->
+              Format.printf "%s" nnn;
               (ocamltyp_to_graphtyp nnn) in
 
           let namel = name_to_lower nn in
@@ -231,7 +261,7 @@ end = struct
 
       h meths;
 
-      Format.fprintf f "]@]@]@.";
+      Format.fprintf f "];;@]@]@.";
       f
     | _ -> f
   ;;
