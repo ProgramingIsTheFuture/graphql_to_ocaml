@@ -42,7 +42,7 @@ type MyQuery {
 }
 
 type Todo {
-  id: ID!
+  Id: ID!
   Username: String
   Password(username: String): String!
   Age: Int

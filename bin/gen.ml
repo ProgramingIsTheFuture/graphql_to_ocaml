@@ -180,7 +180,7 @@ end = struct
   let pp_schemas_typ (n: string) meths (f: t)=
     Format.fprintf f "@[<2>let %s_schema =@ @," (name_to_lower n);
     Format.fprintf f "let open Schema in@,";
-    Format.fprintf f "@[<2>obj \"%s\"@," (name_to_lower n);
+    Format.fprintf f "@[<2>obj \"%s\"@," n;
     Format.fprintf f "@[<2>~fields:(fun _info -> [@,";
 
     let rec h llm =
@@ -192,7 +192,7 @@ end = struct
             (ocamltyp_to_graphtyp nnn) in
 
         let namel = name_to_lower nn in
-        Format.fprintf f "@[<2>field \"%s\"@ @," namel;
+        Format.fprintf f "@[<2>field \"%s\"@ @," nn;
         Format.fprintf f "~typ:(%s)@ @," tp;
         pp_args args f;
         Format.fprintf f "~resolve:(fun _ v -> v.%s);@ @,@]@;<0 0>" namel;
@@ -221,7 +221,7 @@ end = struct
               (ocamltyp_to_graphtyp nnn) in
 
           let namel = name_to_lower nn in
-          Format.fprintf f "@[<2>field \"%s\"@ @," namel;
+          Format.fprintf f "@[<2>field \"%s\"@ @," nn;
           Format.fprintf f "~typ:(%s)@ @," tp;
           pp_args args f;
           Format.fprintf f "~resolve:schema_from_typ.%s;@ @,@]@;<0 0>" namel;
@@ -251,7 +251,7 @@ end = struct
 
       Format.fprintf f "@[<2>let %s_schema =@ @," (name_to_lower n);
       Format.fprintf f "let open Schema in@,";
-      Format.fprintf f "@[<2>obj \"%s\"@," (name_to_lower n);
+      Format.fprintf f "@[<2>obj \"%s\"@," (n);
       Format.fprintf f "@[<2>~fields:(fun _info -> [@,";
 
       let rec h llm =
@@ -264,7 +264,7 @@ end = struct
               (ocamltyp_to_graphtyp nnn) in
 
           let namel = name_to_lower nn in
-          Format.fprintf f "@[<2>field \"%s\"@ @," namel;
+          Format.fprintf f "@[<2>field \"%s\"@ @," nn;
           Format.fprintf f "~typ:(%s)@ @," tp;
           pp_args args f;
           Format.fprintf f "~resolve:(fun _ v -> v.%s);@ @,@]@;<0 0>" namel;
