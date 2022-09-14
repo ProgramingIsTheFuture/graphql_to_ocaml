@@ -138,7 +138,7 @@ end = struct
 
     Format.fprintf f "@]};;@,@.";;
 
-  let pp_types (f: t) n lm =
+  let pp_types n lm (f: t) =
     let open Ast in
     let h () =
       let rec get_fields llm=
@@ -177,7 +177,36 @@ end = struct
     h args;
     Format.fprintf f "]@]@ @,";;
 
-  let rec pp_expr e (f: t) =
+  let pp_schema_typ (n: string) meths (f: t)=
+    Format.fprintf f "@[<2>let %s_schema =@ @," (name_to_lower n);
+    Format.fprintf f "let open Schema in@,";
+    Format.fprintf f "@[<2>obj \"%s\"@," (name_to_lower n);
+    Format.fprintf f "@[<2>~fields:(fun _info -> [@,";
+
+    let rec h llm =
+      match llm with
+      | Ast.Method (nn, args ,typ) :: lllm ->
+        let tp =
+          match typ with
+          | Typ (nnn) ->
+            (* Convert the ocamltypes to graphqltypes TODO *)
+            (ocamltyp_to_graphtyp nnn) in
+
+        let namel = name_to_lower nn in
+        Format.fprintf f "@[<2>field \"%s\"@ @," namel;
+        Format.fprintf f "~typ:(%s)@ @," tp;
+        pp_args args f;
+        Format.fprintf f "~resolve:(fun _ v -> v.%s);@ @,@]@;<0 0>" namel;
+
+        h lllm
+      | _ -> () in
+
+    h meths;
+    Format.fprintf f "@]])@];;@]@.";;
+
+
+
+  let rec _pp_expr e (f: t) =
     let open Ast in
     match e with
     (* *)
@@ -188,7 +217,7 @@ end = struct
         contributors: [User]
         } *)
     | TypeDecl (n, lm) :: tl ->
-      pp_types f n lm;
+      pp_types n lm f;
 
       Format.fprintf f "@[<2>let %s_schema =@ @," (name_to_lower n);
       Format.fprintf f "let open Schema in@,";
@@ -216,7 +245,7 @@ end = struct
       h lm;
       Format.fprintf f "@]])@];;@]@.";
 
-      pp_expr tl f
+      _pp_expr tl f
     | _ -> ();;
 
   let rec pp_expr_ (l: string list) (ctx: Interp.t) (f: t) =
@@ -224,7 +253,10 @@ end = struct
     | typ :: ll ->
       begin match Interp.find_expr_opt ctx typ with
         | Some (Ast.TypeDecl (name, meths)) ->
-          pp_types f name meths;
+          pp_types name meths f;
+
+          pp_schema_typ name meths f;
+
           pp_expr_ ll ctx f;
         | _ -> pp_expr_ ll ctx f;
       end
@@ -239,8 +271,7 @@ end = struct
     let interp = Interp.interp () in
     Interp.declare e interp;
     pp_imports pp |>
-    pp_expr_ !Interp.types_names interp |>
-    pp_expr e;
+    pp_expr_ !Interp.types_names interp |> ignore;
     Format.pp_print_newline pp ();;
 
 end
