@@ -1,0 +1,7 @@
+type MyQuery {
+  Hello: String!
+}
+
+schema {
+  query: MyQuery
+}

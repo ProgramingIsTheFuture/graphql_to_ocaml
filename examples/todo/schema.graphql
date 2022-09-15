@@ -1,0 +1,15 @@
+type Todo {
+  Id: ID!
+  Username: String
+  Password: String!
+  Age: Int
+  Job: [String]
+}
+
+type MyQuery {
+  Todos(id: ID): [Todo!]!
+}
+
+schema {
+  query: MyQuery
+}
