@@ -20,34 +20,29 @@
 (*     Dream.get "/graphiql" (Dream.graphiql "/") *)
 (*   ];; *)
 
-let test = ref true ;;
+let test = ref false ;;
+let file = ref "schema.grapqhl" ;;
+let outfile = ref "schema.ml" ;;
 let speclist =
-  Arg.[("--no-tests", Set test, "Disable the test execution");];;
+  Arg.[
+    ("--no-tests", Set test, "Disable the test execution");
+    ("-o", Set_string outfile, "Output file name");
+  ];;
 
 let () =
-  Arg.parse speclist (fun n -> if n = "no-tests" then test := false) "Usage message";
+  Arg.parse speclist (fun n -> file := n) "Usage message";
 
   if !test then Tests.run_tests ()
-  else
+  else begin
 
-    let gen = open_out "schema.ml" in
+    Format.printf "Out[%s]\n" !outfile;
+    let gen = open_out !outfile in
 
-    let s =  "
-schema {
-      query: MyQuery
-}
+    Format.printf "In[%s]\n" !file;
+    let s = Tokenizer.read_file !file in
+    Format.printf "File:\n%s\n" s;
+    let tokens = Tokenizer.get_tokens s in
 
-type MyQuery {
-      Todos(id: ID): [Todo!]!
-}
-
-type Todo {
-  Id: ID!
-  Username: String
-  Password: String!
-  Age: Int
-  Job: [String]
-}" in(*Tokenizer.read_file "schema.graphql" in*)
-
-    Gen.generate s gen;
-    close_out gen;;
+    Gen.generate tokens gen;
+    close_out gen;
+  end;;

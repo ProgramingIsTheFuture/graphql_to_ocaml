@@ -2,7 +2,7 @@ let read_file fname =
   let file = open_in fname in
   let rec read_all ss =
     try
-      read_all ((input_line file) ^ ss)
+      read_all (ss ^ (input_line file))
     with
       End_of_file -> ss
   in
@@ -11,5 +11,4 @@ let read_file fname =
 
 
 let get_tokens s =
-
   Parser.schema Lexer.tokens (Lexing.from_string s)

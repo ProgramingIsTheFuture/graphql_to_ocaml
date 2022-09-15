@@ -1,1 +1,1 @@
-val generate: string -> out_channel -> unit
+val generate: Ast.schema -> out_channel -> unit

@@ -339,4 +339,4 @@ end
 
 let generate s gen =
   PrettyPrint.pp gen |>
-  PrettyPrint.generate_code (Tokenizer.get_tokens s);;
+  PrettyPrint.generate_code s;;
