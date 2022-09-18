@@ -1,0 +1,35 @@
+{0 Cli documentation}
+
+{1 Overview}
+
+Example of use case:
+[./graphql_to_ocaml -o example.ml myschema.graphql]
+
+{2 Example}
+
+schema.graphql
+
+{[
+schema {
+  query: MyQuery
+}
+
+type MyQuery {
+  Hello: String!
+}
+]}
+
+we can run [./graphql_to_ocaml schema.graphql]
+and it will generate a file schema.ml
+
+{[
+open Graphql_lwt;;
+
+type 'ctx schema = { hello: 'ctx Schema.resolve_info -> unit -> string; };;
+
+let schema schema_from_typ = let open Schema in
+  Schema.schema [
+    field "Hello" ~typ:(non_null string) ~args:Arg.[]
+      ~resolve:schema_from_typ.hello;
+    ];;
+]}

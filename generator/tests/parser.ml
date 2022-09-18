@@ -1,3 +1,5 @@
+open Generator
+
 let type_schema_id_field_test () =
   (* assert (Parser.TYPEKW = (Lexer.tokens l)); *)
   (* assert (Parser.NAME "Todo" = (Lexer.tokens l)); *)
@@ -60,3 +62,6 @@ let type_schema_lists_test () =
 
 let parser_tests () =
   type_schema_id_field_test () |> type_schema_multiple_fields_test |> type_schema_lists_test;;
+
+let () =
+  parser_tests ();;

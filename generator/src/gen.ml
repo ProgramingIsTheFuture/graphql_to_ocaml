@@ -336,7 +336,7 @@ end = struct
 
 end
 
-
-let generate s gen =
+(** [generate tokens gen] generate OCaml code based on the content of the tokens and writes that into the out_channel gen. *)
+let generate tokens gen =
   PrettyPrint.pp gen |>
-  PrettyPrint.generate_code s;;
+  PrettyPrint.generate_code tokens;;

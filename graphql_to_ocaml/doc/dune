@@ -1,0 +1,2 @@
+(documentation
+ (package graphql_to_ocaml))
