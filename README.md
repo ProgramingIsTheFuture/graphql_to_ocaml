@@ -58,7 +58,8 @@ This project is inspired by the [gqlgen](https://github.com/99designs/gqlgen) bu
 - [x] Upgrade the identation with Format module
 - [x] Add support to types with methods
 - [x] Add support to the schema initialization
-- [ ] Reorganize the project
+- [x] Reorganize the project
+- [x] Add more documentation
 - [ ] Write more exampels and tests
 - [ ] Test the code with a simple Graphql Application
 - [ ] Add support for mutation schema
