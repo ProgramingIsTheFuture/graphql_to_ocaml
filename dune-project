@@ -17,7 +17,13 @@
 
 (package
  (name graphql_to_ocaml)
- (synopsis "Compiler from graphql to ocaml")
+ (synopsis "Cli to generate code")
+ (description "A longer description")
+ (depends ocaml dune dream))
+
+(package
+ (name generator)
+ (synopsis "Library - Compiler from graphql to ocaml")
  (description "A longer description")
  (depends ocaml dune dream))
 
